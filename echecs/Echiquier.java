@@ -25,6 +25,89 @@ public class Echiquier {
 		}
 	}
 	
+	public void jouer(int colSrc, int ligneSrc, int colDest, int ligneDest)
+	{
+		if(!coordsValide(colSrc, ligneSrc) || !coordsValide(colDest, ligneDest))
+		{
+			throw new RuntimeException("Les coordonnées ne sont pas valides");
+		}
+		
+		IFigure figure = occupant(colSrc, ligneSrc);
+		
+		if(figure == null)
+		{
+			throw new RuntimeException("La case donnée est vide");
+		}
+		
+		if(figure.craintEchec() && menace(figure, colDest, ligneDest))
+		{
+			throw new RuntimeException("La case est menacée");
+		}
+		
+		if(peutAllerEn(figure, colDest, ligneDest))
+		{
+			figure.déplacer(colDest, ligneDest);
+		}
+	}
+
+	private boolean peutAllerEn(IFigure figure, int colonne, int ligne)
+	{
+		IFigure occupant = occupant(colonne, ligne);
+		
+		if(!figure.potentiel(colonne, ligne))
+		{
+			throw new RuntimeException("La figure n'est pas capable d'effectuer ce mouvement");
+		}
+		
+		if(occupant != null && occupant.estBlanc() == figure.estBlanc())
+		{
+			throw new RuntimeException("La case est occupée par une figure alliée");
+		}
+		
+		return true;
+	}
+	
+	private boolean menace(IFigure figure, int colonne, int ligne)
+	{
+		for(IFigure f : figures)
+		{
+			if(figure != f)
+			{
+				try 
+				{
+					if(peutAllerEn(f, colonne, ligne))
+					{
+						return true;
+					}
+				}
+				catch (Exception e)
+				{
+					continue;
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	private IFigure occupant(int colonne, int ligne)
+	{
+		for(IFigure f : figures)
+		{
+			if(f.occupe(colonne, ligne))
+			{
+				return f;
+			}
+		}
+		
+		return null;
+	}
+	
+	private boolean coordsValide(int colonne, int ligne)
+	{
+		return colonne > 0 && ligne > 0 && colonne <= TAILLE && ligne <= TAILLE;
+	}
+	
 	public String toString() 
 	{
 		// Récupérer la grille des figures
@@ -65,7 +148,7 @@ public class Echiquier {
 			// Affichage des colonnes
 			for(int j = 0; j < TAILLE; ++j)
 			{
-				affichage.append("| " + t[i][j] + " ");
+				affichage.append("| " + t[j][TAILLE - i - 1] + " ");
 			}
 			
 			// Affichage des nombres de fin

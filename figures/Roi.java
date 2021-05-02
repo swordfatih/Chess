@@ -7,6 +7,18 @@ public class Roi extends Figure {
 	}
 	
 	@Override
+	public boolean craintEchec()
+	{
+		return true;
+	}
+	
+	@Override
+	public boolean potentiel(int colonne, int ligne) 
+	{	
+		return Math.abs(getColonne() - colonne) <= 1 && Math.abs(getLigne() - ligne) <= 1;
+	}
+	
+	@Override
 	public char getSymbole()
 	{
 		return 'r';

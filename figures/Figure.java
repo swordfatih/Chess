@@ -23,10 +23,28 @@ public abstract class Figure implements IFigure {
 		return ligne;
 	}
 	
+	public void déplacer(int x, int y)
+	{
+		colonne = x;
+		ligne = y;
+	}
+	
+	public boolean estBlanc()
+	{
+		return blanc;
+	}
+	
+	public boolean craintEchec()
+	{
+		return false;
+	}
+	
 	public boolean occupe(int colonne, int ligne) 
 	{
 		return this.colonne == colonne && this.ligne == ligne;
 	}
+	
+	public abstract boolean potentiel(int colonne, int ligne);
 	
 	public abstract char getSymbole();
 	
