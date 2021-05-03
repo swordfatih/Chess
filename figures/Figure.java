@@ -1,5 +1,6 @@
 package figures;
 
+import echecs.Echiquier;
 import echecs.IFigure;
 
 public abstract class Figure implements IFigure {
@@ -44,7 +45,7 @@ public abstract class Figure implements IFigure {
 		return this.colonne == colonne && this.ligne == ligne;
 	}
 	
-	public abstract boolean potentiel(int colonne, int ligne);
+	public abstract boolean potentiel(int colonne, int ligne, Echiquier echiquier);
 	
 	public abstract char getSymbole();
 	

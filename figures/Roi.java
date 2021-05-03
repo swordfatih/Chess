@@ -1,5 +1,7 @@
 package figures;
 
+import echecs.Echiquier;
+
 public class Roi extends Figure {
 	public Roi(boolean blanc, int colonne, int ligne) 
 	{
@@ -13,7 +15,7 @@ public class Roi extends Figure {
 	}
 	
 	@Override
-	public boolean potentiel(int colonne, int ligne) 
+	public boolean potentiel(int colonne, int ligne, Echiquier echiquier) 
 	{	
 		return Math.abs(getColonne() - colonne) <= 1 && Math.abs(getLigne() - ligne) <= 1;
 	}

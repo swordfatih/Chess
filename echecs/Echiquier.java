@@ -27,6 +27,15 @@ public class Echiquier {
 	
 	public void jouer(int colSrc, int ligneSrc, int colDest, int ligneDest)
 	{
+		IFigure occupant = peutJouer(colSrc, ligneSrc, colDest, ligneDest);
+		if(occupant != null)
+		{
+			occupant.déplacer(colDest, ligneDest);
+		}
+	}
+
+	private IFigure peutJouer(int colSrc, int ligneSrc, int colDest, int ligneDest)
+	{
 		if(!coordsValide(colSrc, ligneSrc) || !coordsValide(colDest, ligneDest))
 		{
 			throw new RuntimeException("Les coordonnées ne sont pas valides");
@@ -44,46 +53,28 @@ public class Echiquier {
 			throw new RuntimeException("La case est menacée");
 		}
 		
-		if(peutAllerEn(figure, colDest, ligneDest))
+		if(!figure.potentiel(colDest, ligneDest, this))
 		{
-			figure.déplacer(colDest, ligneDest);
+			throw new RuntimeException("La figure ne peut pas atteindre la case donnée");
 		}
-	}
-
-	private boolean peutAllerEn(IFigure figure, int colonne, int ligne)
-	{
-		IFigure occupant = occupant(colonne, ligne);
 		
-		if(!figure.potentiel(colonne, ligne))
-		{
-			throw new RuntimeException("La figure n'est pas capable d'effectuer ce mouvement");
-		}
+		IFigure occupant = occupant(colDest, ligneDest);
 		
 		if(occupant != null && occupant.estBlanc() == figure.estBlanc())
 		{
-			throw new RuntimeException("La case est occupée par une figure alliée");
+			throw new RuntimeException("La case est occupée par un alliée");
 		}
 		
-		return true;
+		return figure;
 	}
 	
 	private boolean menace(IFigure figure, int colonne, int ligne)
 	{
 		for(IFigure f : figures)
 		{
-			if(figure != f)
+			if(figure != f && figure.potentiel(colonne, ligne, this))
 			{
-				try 
-				{
-					if(peutAllerEn(f, colonne, ligne))
-					{
-						return true;
-					}
-				}
-				catch (Exception e)
-				{
-					continue;
-				}
+				return true;
 			}
 		}
 		
@@ -105,7 +96,7 @@ public class Echiquier {
 	
 	private boolean coordsValide(int colonne, int ligne)
 	{
-		return colonne > 0 && ligne > 0 && colonne <= TAILLE && ligne <= TAILLE;
+		return colonne >= 0 && ligne >= 0 && colonne < TAILLE && ligne < TAILLE;
 	}
 	
 	public String toString() 
