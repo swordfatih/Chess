@@ -25,44 +25,60 @@ public class Echiquier {
 		}
 	}
 	
-	public void jouer(int colSrc, int ligneSrc, int colDest, int ligneDest)
+	public void jouer(int colSrc, int ligneSrc, int colDest, int ligneDest) throws Exception
 	{
-		IFigure occupant = peutJouer(colSrc, ligneSrc, colDest, ligneDest);
+		// On vérifie si on peut jouer : une exception est levée si on ne peut pas
+		IFigure figure = peutJouer(colSrc, ligneSrc, colDest, ligneDest);
+		
+		// La prise
+		IFigure occupant = occupant(colDest, ligneDest);
+		
 		if(occupant != null)
 		{
-			occupant.dÃ©placer(colDest, ligneDest);
+			figures.remove(occupant);
 		}
+		
+		// On joue
+		figure.déplacer(colDest, ligneDest);
 	}
 
-	private IFigure peutJouer(int colSrc, int ligneSrc, int colDest, int ligneDest)
+	private IFigure peutJouer(int colSrc, int ligneSrc, int colDest, int ligneDest) throws Exception
 	{
 		if(!coordsValide(colSrc, ligneSrc) || !coordsValide(colDest, ligneDest))
 		{
-			throw new RuntimeException("Les coordonnÃ©es ne sont pas valides");
+			throw new Exception("Les coordonnées ne sont pas valides");
 		}
 		
 		IFigure figure = occupant(colSrc, ligneSrc);
 		
 		if(figure == null)
 		{
-			throw new RuntimeException("La case donnÃ©e est vide");
+			throw new Exception("La case donnée est vide");
 		}
 		
-		if(figure.craintEchec() && menace(figure, colDest, ligneDest))
+		if(figure.peutEtreMat() && menace(figure, colDest, ligneDest))
 		{
-			throw new RuntimeException("La case est menacÃ©e");
+			throw new Exception("La case est menacée");
 		}
 		
 		if(!figure.potentiel(colDest, ligneDest, this))
 		{
-			throw new RuntimeException("La figure ne peut pas atteindre la case donnÃ©e");
+			throw new Exception("La figure ne peut pas atteindre la case donnée");
 		}
 		
 		IFigure occupant = occupant(colDest, ligneDest);
 		
-		if(occupant != null && occupant.estBlanc() == figure.estBlanc())
+		if(occupant != null)
 		{
-			throw new RuntimeException("La case est occupÃ©e par un alliÃ©e");
+			if(occupant.estBlanc() == figure.estBlanc())
+			{
+				throw new Exception("La case est occupée par un alliée");
+			}
+		
+			if(occupant.peutEtreMat())
+			{
+				throw new Exception("La case est occupée par une figure qui ne peut pas être capturée");
+			}
 		}
 		
 		return figure;
@@ -101,7 +117,7 @@ public class Echiquier {
 	
 	public String toString() 
 	{
-		// RÃ©cupÃ©rer la grille des figures
+		// Récupérer la grille des figures
 		char t[][] = new char[TAILLE][TAILLE];
 		
 		for(IFigure figure : figures)
@@ -111,7 +127,7 @@ public class Echiquier {
 		
 		StringBuilder affichage = new StringBuilder();
 		
-		// Affichage des lettres de dÃ©but
+		// Affichage des lettres de début
 		affichage.append("  ");
 		for(int i = 0; i < TAILLE; ++i)
 		{
@@ -133,7 +149,7 @@ public class Echiquier {
 			
 			affichage.append(System.lineSeparator());
 			
-			// Affichage des nombres de dÃ©but
+			// Affichage des nombres de début
 			affichage.append(" " + (TAILLE - i) + " ");
 			
 			// Affichage des colonnes
@@ -148,7 +164,7 @@ public class Echiquier {
 			affichage.append(System.lineSeparator());
 		}
 		
-		// Affichage de la derniÃ¨re ligne
+		// Affichage de la dernière ligne
 		affichage.append("   ");
 		for(int j = 0; j < TAILLE; ++j)
 		{

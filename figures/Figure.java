@@ -13,45 +13,52 @@ public abstract class Figure implements IFigure {
 		this.colonne = colonne;
 		this.ligne = ligne;
 	}
-
-	public int getColonne()
-	{
-		return colonne;
-	}
 	
-	public int getLigne()
-	{
-		return ligne;
-	}
-	
+	@Override
 	public void déplacer(int x, int y)
 	{
 		colonne = x;
 		ligne = y;
 	}
 	
-	public boolean estBlanc()
-	{
-		return blanc;
-	}
-	
-	public boolean craintEchec()
-	{
-		return false;
-	}
-	
+	@Override
 	public boolean occupe(int colonne, int ligne) 
 	{
 		return this.colonne == colonne && this.ligne == ligne;
 	}
 	
+	@Override
 	public abstract boolean potentiel(int colonne, int ligne, Echiquier echiquier);
-	
-	public abstract char getSymbole();
 	
 	@Override
 	public void dessiner(char[][] t) 
 	{
 		t[colonne][ligne] = blanc ? Character.toUpperCase(getSymbole()) : Character.toLowerCase(getSymbole());
+	}
+	
+	public abstract char getSymbole();
+	
+	@Override
+	public boolean estBlanc()
+	{
+		return blanc;
+	}
+	
+	@Override
+	public boolean peutEtreMat()
+	{
+		return false;
+	}
+	
+	@Override
+	public int getColonne()
+	{
+		return colonne;
+	}
+	
+	@Override
+	public int getLigne()
+	{
+		return ligne;
 	}
 }

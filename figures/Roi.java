@@ -9,7 +9,7 @@ public class Roi extends Figure {
 	}
 	
 	@Override
-	public boolean craintEchec()
+	public boolean peutEtreMat()
 	{
 		return true;
 	}

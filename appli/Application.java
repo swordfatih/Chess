@@ -12,13 +12,20 @@ public class Application {
 		Echiquier echiquier = new Echiquier(fabrique);
 		System.out.println(echiquier);
 		
-		echiquier.jouer(1, 1, 2, 2);
-		System.out.println(echiquier);
-		
-		echiquier.jouer(2, 2, 3, 3);
-		System.out.println(echiquier);
-		
-		echiquier.jouer(3, 3, 4, 4);
-		System.out.println(echiquier);
+		try
+		{
+			echiquier.jouer(1, 1, 2, 2);
+			System.out.println(echiquier);
+			
+			echiquier.jouer(2, 2, 3, 3);
+			System.out.println(echiquier);
+			
+			echiquier.jouer(3, 3, 4, 4);
+			System.out.println(echiquier);
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+		}
 	}
 }
