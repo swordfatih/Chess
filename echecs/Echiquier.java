@@ -30,7 +30,7 @@ public class Echiquier {
 		IFigure occupant = peutJouer(colSrc, ligneSrc, colDest, ligneDest);
 		if(occupant != null)
 		{
-			occupant.déplacer(colDest, ligneDest);
+			occupant.dÃ©placer(colDest, ligneDest);
 		}
 	}
 
@@ -38,31 +38,31 @@ public class Echiquier {
 	{
 		if(!coordsValide(colSrc, ligneSrc) || !coordsValide(colDest, ligneDest))
 		{
-			throw new RuntimeException("Les coordonnées ne sont pas valides");
+			throw new RuntimeException("Les coordonnÃ©es ne sont pas valides");
 		}
 		
 		IFigure figure = occupant(colSrc, ligneSrc);
 		
 		if(figure == null)
 		{
-			throw new RuntimeException("La case donnée est vide");
+			throw new RuntimeException("La case donnÃ©e est vide");
 		}
 		
 		if(figure.craintEchec() && menace(figure, colDest, ligneDest))
 		{
-			throw new RuntimeException("La case est menacée");
+			throw new RuntimeException("La case est menacÃ©e");
 		}
 		
 		if(!figure.potentiel(colDest, ligneDest, this))
 		{
-			throw new RuntimeException("La figure ne peut pas atteindre la case donnée");
+			throw new RuntimeException("La figure ne peut pas atteindre la case donnÃ©e");
 		}
 		
 		IFigure occupant = occupant(colDest, ligneDest);
 		
 		if(occupant != null && occupant.estBlanc() == figure.estBlanc())
 		{
-			throw new RuntimeException("La case est occupée par un alliée");
+			throw new RuntimeException("La case est occupÃ©e par un alliÃ©e");
 		}
 		
 		return figure;
@@ -72,7 +72,7 @@ public class Echiquier {
 	{
 		for(IFigure f : figures)
 		{
-			if(figure != f && figure.potentiel(colonne, ligne, this))
+			if(figure != f && f.potentiel(colonne, ligne, this))
 			{
 				return true;
 			}
@@ -101,7 +101,7 @@ public class Echiquier {
 	
 	public String toString() 
 	{
-		// Récupérer la grille des figures
+		// RÃ©cupÃ©rer la grille des figures
 		char t[][] = new char[TAILLE][TAILLE];
 		
 		for(IFigure figure : figures)
@@ -111,7 +111,7 @@ public class Echiquier {
 		
 		StringBuilder affichage = new StringBuilder();
 		
-		// Affichage des lettres de début
+		// Affichage des lettres de dÃ©but
 		affichage.append("  ");
 		for(int i = 0; i < TAILLE; ++i)
 		{
@@ -133,7 +133,7 @@ public class Echiquier {
 			
 			affichage.append(System.lineSeparator());
 			
-			// Affichage des nombres de début
+			// Affichage des nombres de dÃ©but
 			affichage.append(" " + (TAILLE - i) + " ");
 			
 			// Affichage des colonnes
@@ -148,7 +148,7 @@ public class Echiquier {
 			affichage.append(System.lineSeparator());
 		}
 		
-		// Affichage de la dernière ligne
+		// Affichage de la derniÃ¨re ligne
 		affichage.append("   ");
 		for(int j = 0; j < TAILLE; ++j)
 		{
