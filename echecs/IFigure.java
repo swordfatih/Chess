@@ -6,6 +6,7 @@ public interface IFigure {
 	void déplacer(int x, int y);
 	void dessiner(char[][] t);
 	boolean peutEtreMat();
+	boolean insuffisant();
 	boolean estBlanc();
 	int getColonne();
 	int getLigne();

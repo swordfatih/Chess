@@ -36,6 +36,12 @@ public abstract class Figure implements IFigure {
 		t[colonne][ligne] = blanc ? Character.toUpperCase(getSymbole()) : Character.toLowerCase(getSymbole());
 	}
 	
+	@Override
+	public boolean insuffisant()
+	{
+		return false;
+	}
+	
 	public abstract char getSymbole();
 	
 	@Override

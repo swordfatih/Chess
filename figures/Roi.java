@@ -21,6 +21,12 @@ public class Roi extends Figure {
 	}
 	
 	@Override
+	public boolean insuffisant()
+	{
+		return true;
+	}
+	
+	@Override
 	public char getSymbole()
 	{
 		return 'r';
