@@ -4,177 +4,93 @@ import java.util.ArrayList;
 import java.util.function.BooleanSupplier;
 
 public class Echiquier {
-	private static final int TAILLE = 8;
-	private static final int INSUFFISANCE_MATERIEL = 3;
+    public static final int TAILLE = 8; // Nombre de cases d'un côté de l'échiquier
+	private static final int INSUFFISANCE_THEORIQUE = 3; // Nombre insufissante de figure pour gagner si ces figures sont tous "insufissants"
+	private static final int NB_COUP_POUR_PAT = 50; // La règle des 50 coups
 	
-	ArrayList<IFigure> figures;
+	private ArrayList<IFigure> figures; // Les figures de l'échiquier
+	private int compteurCoupPat;
 	
+	/**
+	 * Le constructeur de l'échiquier
+	 * Prend en paramètre une fabrique et créer les figures de l'échiquier
+	 * @param fabrique
+	 */
 	public Echiquier(IFabrique fabrique)
 	{
 		figures = new ArrayList<IFigure>();
+		compteurCoupPat = 0;
 		
 		for(int i = 0; i < TAILLE; ++i)
-		{
 			for(int j = 0; j < TAILLE; ++j)
 			{
-				IFigure f = fabrique.fabriquer(i, j);
-				
-				if(f != null)
-				{
-					figures.add(f);
-				}
+				IFigure f = fabrique.fabriquer(new Case(i, j));
+				if(f != null) figures.add(f);
 			}
-		}
 	}
-	
-	public boolean pat(boolean blanc)
-	{
-		boolean[][] grille = new boolean[TAILLE][TAILLE];
-	
-		// Stalemate
-		for(IFigure figure : figures)
-		{
-			if(figure.estBlanc() == blanc)
-			{
-				possibles(figure, grille);
-				
-				boolean peutJouer = false;
-				for(int i = 0; i < grille.length; ++i)
-				{
-					for(int j = 0; j < grille[i].length; ++j)
-					{
-						if(grille[i][j] == true)
-						{
-							peutJouer = true;
-						}
-					}
-				}
-				
-				if(peutJouer == true)
-				{
-					return false;
-				}
-			}
-		}
-		
-		// Insuffisance matériel
-		if(figures.size() <= INSUFFISANCE_MATERIEL)
-		{
-			for(IFigure figure : figures)
-			{
-				if(figure.insuffisant() == false)
-				{
-					return false;
-				}
-			}
-		}
-		
-		return true;
-	}
-	
-	public boolean mat() 
-	{
-		IFigure echec = echec();
 
-		if(echec != null)
+	/**
+	 * Tous les attaquants d'une case donnée pour une figure
+	 * @param figure
+	 * @param colonne
+	 * @param ligne
+	 * @return
+	 */
+	private ArrayList<IFigure> attaquants(IFigure figure, Case c)
+	{
+		ArrayList<IFigure> attaquants = new ArrayList<IFigure>();
+		
+		for(IFigure f : figures)
 		{
-			// Le roi ne peut pas se sauver
-			boolean[][] grille = new boolean[TAILLE][TAILLE];
-			possibles(echec, grille);
-			
-			for(int i = 0; i < grille.length; ++i)
-			{
-				for(int j = 0; j < grille[i].length; ++j)
-				{
-					if(grille[i][j] == true)
-					{
-						return false;
-					}
-				}
-			}
-			
-			ArrayList<IFigure> attaquants = attaquants(echec, echec.getColonne(), echec.getLigne());
-			
-			// Aucune pièce attaquante ne peut être capturé
-			if(attaquants.size() == 1)
-			{
-				for(IFigure figure : figures)
-				{
-					if(figure.estBlanc() == echec.estBlanc())
-					{
-						for(IFigure attaquant : attaquants)
-						{
-							try
-							{
-								if(peutJouer(figure.getColonne(), figure.getLigne(), attaquant.getColonne(), attaquant.getLigne()) != null)
-								{
-									return false;
-								}
-							} catch(Exception e) {}
-						}
-					}
-				}
-				
-				// Aucune interposition n'est possible
-				for(IFigure figure : figures)
-				{
-					if(figure.estBlanc() == echec.estBlanc())
-					{
-						for(IFigure attaquant : attaquants)
-						{
-							possibles(figure, grille);
-							
-							for(int i = 0; i < grille.length; ++i)
-							{
-								for(int j = 0; j < grille[i].length; ++j)
-								{
-									if(grille[i][j] == true)
-									{
-										try
-										{
-											if(peutJouer(figure.getColonne(), figure.getLigne(), i, j) != null)
-											{
-												return false;
-											}
-										} catch(Exception e) {}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			return true;
+			if(figure != f && f.estBlanc() != figure.estBlanc() && f.potentiel(c, this))
+				attaquants.add(f);
 		}
 		
-		return false;
+		return attaquants;
 	}
 	
-	public void jouer(int colSrc, int ligneSrc, int colDest, int ligneDest) throws Exception
+	/**
+	 * Vérifier si une case représente une menace pour une pièce donnée
+	 * @param figure Une figure qui craint l'échec
+	 * @param colonne
+	 * @param ligne
+	 * @return
+	 */
+	public boolean menace(IFigure figure, Case c)
 	{
-		// On vérifie si on peut jouer : une exception est levée si on ne peut pas
-		IFigure figure = peutJouer(colSrc, ligneSrc, colDest, ligneDest);
-		
-		// La prise
-		IFigure occupant = occupant(colDest, ligneDest);
-		
-		if(occupant != null)
+		return figure.peutEtreMat() && attaquants(figure, c).size() > 0;
+	}
+	
+	/** 
+	 * Récupérer la figure en situation d'échec s'il y en a un
+	 * @return
+	 */
+	private IFigure echec()
+	{
+		for(IFigure f : figures)
 		{
-			figures.remove(occupant);
+			if(menace(f, f.getCase())) 
+				return f;
 		}
 		
-		// Le clouage
-		if(simulation(colSrc, ligneSrc, colDest, ligneDest, () -> {
-			IFigure echec = echec();
-			return echec != null && echec.estBlanc() == figure.estBlanc();
-		}))
+		return null;
+	}
+	
+	/**
+	 * Récuperer la figure occupant une case
+	 * @param colonne
+	 * @param ligne
+	 * @return
+	 */
+	public IFigure occupant(Case c)
+	{
+		for(IFigure f : figures)
 		{
-			throw new Exception("La pièce est clouée");
+			if(f.occupe(c)) 
+				return f;
 		}
 		
-		// On joue
-		figure.déplacer(colDest, ligneDest);
+		return null;
 	}
 	
 	/**
@@ -189,143 +105,195 @@ public class Echiquier {
 	 * @return Le résultat de la simulation
 	 * @throws Exception
 	 */
-	private boolean simulation(int colSrc, int ligneSrc, int colDest, int ligneDest, BooleanSupplier lambda) throws Exception
+	private boolean simulation(Case src, Case dest, BooleanSupplier lambda) 
 	{
-		if(!coordsValide(colSrc, ligneSrc) || !coordsValide(colDest, ligneDest))
-		{
-			throw new Exception("Les coordonnées ne sont pas valides");
-		}
+		IFigure figure = occupant(src);
+		if(figure == null) 
+			return false;
 		
-		IFigure figure = occupant(colSrc, ligneSrc);
+		// Simuler le coup
+		IFigure occupant = occupant(dest);
+		if(occupant != null) 
+			figures.remove(occupant);
+		figure.déplacer(dest, true);
 		
-		figure.déplacer(colDest, ligneDest);
-		
+		// Tester
 		boolean result = lambda.getAsBoolean();
 		
-		figure.déplacer(colSrc, ligneSrc);
+		// Revenir en arrière
+		figure.déplacer(src, true);
+		if(occupant != null) 
+			figures.add(occupant);
 		
 		return result;
 	}
-
-	private IFigure peutJouer(int colSrc, int ligneSrc, int colDest, int ligneDest) throws Exception
+	
+	private boolean estJouable(Case src, Case dest) 
 	{
-		if(!coordsValide(colSrc, ligneSrc) || !coordsValide(colDest, ligneDest))
+		IFigure figure = occupant(src);
+		IFigure occupant = occupant(dest);
+		
+		if(src.equals(dest) // Les cases source et destination sont les mêmes
+				|| figure == null // Aucune figure n'est trouvée 
+				|| !figure.potentiel(dest, this) // La figure ne sait pas y aller
+				|| (occupant != null && (occupant.estBlanc() == figure.estBlanc() // Une figure alliée s'y trouve
+					|| occupant.peutEtreMat())) // Une figure imprenable s'y trouve
+				|| simulation(src, dest, () -> { 
+					return menace(figure, dest); }) // On vérifie si la figure se met en situation d'échec
+				|| simulation(src, dest, () -> { 
+						IFigure echec = echec();
+						return echec != null && echec.estBlanc() == figure.estBlanc(); 
+				   })) // On vérifie s'il y a clouage
 		{
-			throw new Exception("Les coordonnées ne sont pas valides");
+			return false;
 		}
-		
-		IFigure figure = occupant(colSrc, ligneSrc);
-		
-		if(figure == null)
-		{
-			throw new Exception("La case donnée est vide");
-		}
-		
-		if(!figure.potentiel(colDest, ligneDest, this))
-		{
-			throw new Exception("La figure ne peut pas atteindre la case donnée");
-		}
-		
-		IFigure occupant = occupant(colDest, ligneDest);
-		
-		if(occupant != null)
-		{
-			if(occupant.estBlanc() == figure.estBlanc())
-			{
-				throw new Exception("La case est occupée par un alliée");
-			}
-		
-			if(occupant.peutEtreMat())
-			{
-				throw new Exception("La case est occupée par une figure qui ne peut pas être capturée");
-			}
-		}
-		
-		if(simulation(colSrc, ligneSrc, colDest, ligneDest, () -> {
-			return figure.peutEtreMat() && menace(figure, colDest, ligneDest);
-		}))
-		{
-			throw new Exception("La case est menacée");
-		};
-
-		return figure;
+			
+		return true;
 	}
 	
-	private void possibles(IFigure figure, boolean[][] grille)
+	/**
+	 * Jouer un coup
+	 * @param colSrc
+	 * @param ligneSrc
+	 * @param colDest
+	 * @param ligneDest
+	 * @throws Exception
+	 */
+	public void jouer(Case src, Case dest) throws Exception
 	{
-		for(int i = 0; i < grille.length; ++i)
+		// On vérifie si on peut jouer : une exception est levée si on ne peut pas
+		if(!estJouable(src, dest))
+			throw new Exception("Coup invalide");
+		
+		if(!src.valide() || !dest.valide())
+			throw new IndexOutOfBoundsException();
+		
+		// On effectue la prise s'il y a
+		IFigure occupant = occupant(dest);
+		if(occupant != null) 
+			figures.remove(occupant);
+		
+		IFigure figure = occupant(src);
+		
+		// On effectue le roque s'il y a lieu
+		IFigure partenaire = figure.faireRoque(dest, this);
+		
+		if(partenaire != null)
+			partenaire.déplacer(new Case(src.getColonne() + (dest.relatif(src).getColonne() > 0 ? 1 : -1), src.getLigne()), false);
+			
+		// On déplace la figure
+		figure.déplacer(dest, false);
+		
+		// Compteur pour la règle des 50 coups
+		compteurCoupPat++;
+		
+		if(figure.peutEtrePromu() || occupant != null)
 		{
-			for(int j = 0; j < grille[i].length; ++j)
-			{
-				try
-				{
-					grille[i][j] = peutJouer(figure.getColonne(), figure.getLigne(), i, j) != null;
-				}
-				catch(Exception e)
-				{
-					grille[i][j] = false;
-				}
-			}
+			compteurCoupPat = 0;
 		}
 	}
 	
-	private IFigure echec()
+	/**
+	 * Tous les mouvements possibles d'une figure donnée
+	 * @param figure
+	 * @param grille
+	 */
+	private ArrayList<Case> mouvementsPossibles(IFigure figure)
 	{
-		for(IFigure f : figures)
+		ArrayList<Case> cases = new ArrayList<Case>();
+		
+		for(int i = 0; i < TAILLE; ++i)
 		{
-			if(f.peutEtreMat() && menace(f, f.getColonne(), f.getLigne()))
+			for(int j = 0; j < TAILLE; ++j)
 			{
-				return f;
+				Case dest = new Case(i, j);
+				if(estJouable(figure.getCase(), dest))
+					cases.add(dest);
+			}
+		}
+		
+		return cases;
+	}
+	
+	public boolean pat(boolean blanc)
+	{
+		// Règle des 50 coups
+		if(compteurCoupPat >= NB_COUP_POUR_PAT)
+		{
+			return true;
+		}
+		
+		// Insuffisance matériel
+		boolean insufissance = true;
+		if(figures.size() <= INSUFFISANCE_THEORIQUE)
+		{
+			for(IFigure figure : figures)
+			{
+				if(figure.estInsuffisant() == false)
+					insufissance = false;
+			}
+		}
+		
+		if(insufissance) return true;
+		
+		// Stalemate
+		for(IFigure figure : figures)
+		{
+			if(figure.estBlanc() == blanc && mouvementsPossibles(figure).size() > 0)
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public boolean mat() 
+	{
+		IFigure echec = echec();
+			
+		// S'il n'y a pas échec ou si le roi peut se sauver
+		if(echec == null || mouvementsPossibles(echec).size() > 0)
+		{
+			return false;
+		}
+		
+		// S'il y a plusieurs attaquants, le mat est inévitable
+		ArrayList<IFigure> attaquants = attaquants(echec, echec.getCase());
+		if(attaquants.size() > 1) return true;
+		
+		// Si une pièce attaquante peut être capturé
+		for(IFigure figure : figures)
+			if(figure.estBlanc() == echec.estBlanc())
+				for(IFigure attaquant : attaquants)
+					if(estJouable(figure.getCase(), attaquant.getCase()))
+						return false;
+		
+		// Si une interposition est possible
+		for(IFigure figure : figures)
+			if(figure.estBlanc() == echec.estBlanc())
+				for(IFigure attaquant : attaquants)
+					for(Case c : mouvementsPossibles(attaquant))
+						if(simulation(figure.getCase(), c, () -> {
+							IFigure e = echec();
+							return e == null || e.estBlanc() != figure.estBlanc(); 
+						}))
+						{
+							return false;
+						}
+							
+		return true;
+	}
+	
+	public IFigure promotion()
+	{
+		for(IFigure figure : figures)
+		{
+			if(figure.peutEtrePromu()) 
+			{
+				return figure;
 			}
 		}
 		
 		return null;
-	}
-	
-	private boolean menace(IFigure figure, int colonne, int ligne)
-	{
-		for(IFigure f : figures)
-		{
-			if(figure != f && f.estBlanc() != figure.estBlanc() && f.potentiel(colonne, ligne, this))
-			{
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	private ArrayList<IFigure> attaquants(IFigure figure, int colonne, int ligne)
-	{
-		ArrayList<IFigure> attaquants = new ArrayList<IFigure>();
-		
-		for(IFigure f : figures)
-		{
-			if(figure != f && f.estBlanc() != figure.estBlanc() && f.potentiel(colonne, ligne, this))
-			{
-				attaquants.add(f);
-			}
-		}
-		
-		return attaquants;
-	}
-	
-	public IFigure occupant(int colonne, int ligne)
-	{
-		for(IFigure f : figures)
-		{
-			if(f.occupe(colonne, ligne))
-			{
-				return f;
-			}
-		}
-		
-		return null;
-	}
-	
-	private boolean coordsValide(int colonne, int ligne)
-	{
-		return colonne >= 0 && ligne >= 0 && colonne < TAILLE && ligne < TAILLE;
 	}
 	
 	public String toString() 
@@ -345,7 +313,7 @@ public class Echiquier {
 		for(int i = 0; i < TAILLE; ++i)
 		{
 			affichage.append("   ");
-			affichage.append(intToChar(i));
+			affichage.append(Case.colonneToChar(i));
 		}
 		affichage.append("     ");
 		affichage.append(System.lineSeparator());
@@ -392,15 +360,10 @@ public class Echiquier {
 		for(int i = 0; i < TAILLE; ++i)
 		{
 			affichage.append("   ");
-			affichage.append(intToChar(i));
+			affichage.append(Case.colonneToChar(i));
 		}
 		affichage.append("     ");
 		
 		return affichage.toString();
-	}
-	
-	private char intToChar(int n) 
-	{
-		return (char)(97 + n);
 	}
 }

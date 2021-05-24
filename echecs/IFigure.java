@@ -1,13 +1,16 @@
 package echecs;
 
 public interface IFigure {
-	boolean potentiel(int colonne, int ligne, Echiquier echiquier);
-	boolean occupe(int colonne, int ligne);
-	void déplacer(int x, int y);
+	IFigure faireRoque(Case dest, Echiquier echiquier);
+	boolean potentiel(Case dest, Echiquier echiquier);
 	void dessiner(char[][] t);
+	void déplacer(Case dest, boolean simulation);
+	boolean peutEtreRoque();
+	boolean occupe(Case c);
+	boolean peutEtrePromu();
 	boolean peutEtreMat();
-	boolean insuffisant();
+	boolean estInsuffisant();
 	boolean estBlanc();
-	int getColonne();
-	int getLigne();
+	boolean aBougé();
+	Case getCase();
 }

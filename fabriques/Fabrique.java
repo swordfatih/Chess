@@ -2,6 +2,7 @@ package fabriques;
 
 import java.util.HashMap;
 
+import echecs.Case;
 import echecs.IFabrique;
 import echecs.IFigure;
 
@@ -13,18 +14,18 @@ public class Fabrique implements IFabrique {
 		figures = new HashMap<String, IFigure>();
 	}
 	
-	public IFigure fabriquer(int colonne, int ligne)
+	public IFigure fabriquer(Case c)
 	{
-		return figures.get(coordsToKey(colonne, ligne));
+		return figures.get(caseToKey(c));
 	}
 	
 	public void ajouter(IFigure figure)
 	{
-		figures.put(coordsToKey(figure.getColonne(), figure.getLigne()), figure);
+		figures.put(caseToKey(figure.getCase()), figure);
 	}
 	
-	private String coordsToKey(int colonne, int ligne)
+	private String caseToKey(Case c)
 	{
-		return colonne + "," + ligne;
+		return c.getColonne() + "," + c.getLigne();
 	}
 }

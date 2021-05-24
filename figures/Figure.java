@@ -1,43 +1,53 @@
 package figures;
 
+import echecs.Case;
 import echecs.Echiquier;
 import echecs.IFigure;
 
 public abstract class Figure implements IFigure {
-	private int colonne, ligne;
-	boolean blanc;
+	private Case pos;
+	private boolean blanc;
+	private boolean bougé;
 	
 	public Figure(boolean blanc, int colonne, int ligne) 
 	{
 		this.blanc = blanc;
-		this.colonne = colonne;
-		this.ligne = ligne;
+		pos = new Case(colonne, ligne);
+		bougé = false;
 	}
 	
 	@Override
-	public void déplacer(int x, int y)
-	{
-		colonne = x;
-		ligne = y;
-	}
-	
-	@Override
-	public boolean occupe(int colonne, int ligne) 
-	{
-		return this.colonne == colonne && this.ligne == ligne;
-	}
-	
-	@Override
-	public abstract boolean potentiel(int colonne, int ligne, Echiquier echiquier);
+	public abstract boolean potentiel(Case dest, Echiquier echiquier);
 	
 	@Override
 	public void dessiner(char[][] t) 
 	{
-		t[colonne][ligne] = blanc ? Character.toUpperCase(getSymbole()) : Character.toLowerCase(getSymbole());
+		t[pos.getColonne()][pos.getLigne()] = blanc ? Character.toUpperCase(getSymbole()) : Character.toLowerCase(getSymbole());
 	}
 	
 	@Override
-	public boolean insuffisant()
+	public void déplacer(Case dest, boolean simulation)
+	{
+		pos = dest;
+		
+		if(!simulation)
+			bougé = true;
+	}
+	
+	@Override
+	public boolean occupe(Case c) 
+	{
+		return pos.equals(c);
+	}
+	
+	@Override 
+	public IFigure faireRoque(Case dest, Echiquier echiquier)
+	{
+		return null;
+	}
+	
+	@Override
+	public boolean peutEtreRoque()
 	{
 		return false;
 	}
@@ -45,9 +55,9 @@ public abstract class Figure implements IFigure {
 	public abstract char getSymbole();
 	
 	@Override
-	public boolean estBlanc()
+	public boolean peutEtrePromu()
 	{
-		return blanc;
+		return false;
 	}
 	
 	@Override
@@ -57,14 +67,26 @@ public abstract class Figure implements IFigure {
 	}
 	
 	@Override
-	public int getColonne()
+	public boolean estInsuffisant()
 	{
-		return colonne;
+		return false;
 	}
 	
 	@Override
-	public int getLigne()
+	public boolean estBlanc()
 	{
-		return ligne;
+		return blanc;
+	}
+	
+	@Override
+	public boolean aBougé()
+	{
+		return bougé;
+	}
+
+	@Override
+	public Case getCase()
+	{
+		return pos;
 	}
 }

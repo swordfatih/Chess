@@ -1,17 +1,23 @@
 package appli;
 
-import java.util.Scanner;
-
-import echecs.Echiquier;
-import echecs.IFabrique;
-import fabriques.FabriqueFin;
+import jeu.Echecs;
 
 public class Application {
 	public static void main(String[] args)
 	{
-		IFabrique fabrique = new FabriqueFin();
+		Echecs echecs = new Echecs();
 		
-		Echiquier echiquier = new Echiquier(fabrique);
+		try
+		{
+			echecs.initialiser();
+			echecs.commencer();
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+		}
+		
+		/*Echiquier echiquier = new Echiquier(fabrique);
 		System.out.println(echiquier);
 		
 		Scanner scanner = new Scanner(System.in);
@@ -23,17 +29,20 @@ public class Application {
 			@SuppressWarnings("resource")
 			Scanner decomposition = new Scanner(ligne);
 			
-			int colSrc = Integer.parseInt(decomposition.next());
-			int ligneSrc = Integer.parseInt(decomposition.next());
-			int colDest = Integer.parseInt(decomposition.next());
-			int ligneDest = Integer.parseInt(decomposition.next());
-			
 			try
 			{
-				echiquier.jouer(colSrc, ligneSrc, colDest, ligneDest);
+				echiquier.jouer(new Case(decomposition.next()), new Case(decomposition.next()));
 				System.out.println(echiquier);
 				
 				System.out.println(echiquier.mat() ? "Echec et mat" : "La partie continue");
+			}
+			catch(IndexOutOfBoundsException e)
+			{
+				System.out.println("Les coordonnées données sont en dehors de l'échiquier");
+			}
+			catch(NumberFormatException e)
+			{
+				System.out.println("Les coordonnées données ne correspondent pas au format attendu");
 			}
 			catch(Exception e)
 			{
@@ -44,6 +53,6 @@ public class Application {
 			ligne = scanner.nextLine();
 		}
 		
-		scanner.close();
+		scanner.close();*/
 	}
 }
