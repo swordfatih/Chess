@@ -3,7 +3,6 @@ package test;
 import echecs.Case;
 import echecs.Echiquier;
 import fabriques.Fabrique;
-import fabriques.FabriqueFin;
 import figures.Roi;
 import org.junit.Test;
 import org.junit.Assert;
@@ -21,10 +20,12 @@ public class RoiTest {
         Assert.assertTrue(r.peutEtreMat());
         Assert.assertFalse(r.peutEtreRoque());
         Assert.assertFalse(r.peutEtrePromu());
+        Assert.assertFalse(r.aBougé());
+        Assert.assertTrue(r.occupe(new Case(1, 1)));
     }
 
     @Test
-    public void mouvementsRoi() throws Exception {
+    public void mouvementsRoi() {
         Fabrique f = new Fabrique();
 
         Roi r = new Roi(true, 1, 1);
@@ -35,6 +36,8 @@ public class RoiTest {
 
         f.ajouter(r);
         Echiquier e = new Echiquier(f);
+
+        Assert.assertFalse(r.potentiel(new Case(1, 5), e));
 
         try {
             e.jouer(new Case(1, 1), new Case(1, 5));
@@ -52,7 +55,8 @@ public class RoiTest {
 
         try {
             e.jouer(new Case(1, 2), new Case(2, 2));
-            Assert.assertTrue(true);
+            Assert.assertTrue(r.aBougé());
+            Assert.assertTrue(r.occupe(new Case(2, 2)));
         } catch(Exception err) {
             Assert.fail();
         }
