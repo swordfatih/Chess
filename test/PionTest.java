@@ -39,7 +39,7 @@ public class PionTest {
 
         Echiquier e = new Echiquier(f);
 
-        assertTrue(p.potentiel(new Case(1, 0), e));
+        assertFalse(p.potentiel(new Case(1, 0), e));
 
         try {
             e.jouer(new Case(1,1), new Case(2,7));
@@ -51,11 +51,12 @@ public class PionTest {
         assertTrue(p.getCase().equals(new Case(1, 1)));
 
         try {
-            e.jouer(new Case(1,1), new Case(1,0));
+            e.jouer(new Case(1,1), new Case(1,2));
             assertTrue(true);
             assertTrue(p.aBougé());
-            assertTrue(p.occupe(new Case(1,0)));
+            assertTrue(p.occupe(new Case(1,2)));
         } catch (Exception exception) {
+            System.out.println(exception.getMessage());
             fail();
         }
     }

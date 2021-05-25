@@ -70,7 +70,6 @@ public class TourTest {
 
         try {
             e.jouer(new Case(7,4), new Case(7,0));
-            assertTrue(true);
             assertTrue(t.aBougé());
             assertTrue(t.occupe(new Case(7,0)));
         } catch (Exception exception) {
@@ -78,11 +77,10 @@ public class TourTest {
         }
 
         try {
-            e.jouer(new Case(7,0), new Case(2,0));
-            assertTrue(true);
-            assertTrue(t.occupe(new Case(2,0)));
-        } catch (Exception exception) {
+            e.jouer(new Case(7,0), new Case(7,5));
             fail();
+        } catch (Exception exception) {
+            assertTrue(true);
         }
     }
 

@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 public class EchiquierTest {
 
     @Test
-    public void init() {
+    public void creationEchiquier() {
         Echiquier e = new Echiquier(new FabriqueFin());
 
         assertFalse(e.mat());
