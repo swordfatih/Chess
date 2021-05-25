@@ -2,6 +2,7 @@ package test;
 
 import echecs.Echiquier;
 import fabriques.FabriqueFin;
+import figures.Figure;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -16,8 +17,8 @@ public class EchiquierTest {
         Echiquier e = new Echiquier(new FabriqueFin());
 
         assertFalse(e.mat());
-        assertFalse(e.pat(true));
-        assertFalse(e.pat(false));
+        assertFalse(e.pat(Figure.Couleur.BLANC));
+        assertFalse(e.pat(Figure.Couleur.NOIR));
     }
 
 }
