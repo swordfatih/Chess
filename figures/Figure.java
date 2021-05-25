@@ -5,14 +5,16 @@ import echecs.Echiquier;
 import echecs.IFigure;
 
 public abstract class Figure implements IFigure {
-	private Case pos;
-	private boolean blanc;
+	public enum Couleur { BLANC, NOIR }
+	
+	private Case position;
+	private Couleur couleur;
 	private boolean bougé;
 	
-	public Figure(boolean blanc, int colonne, int ligne) 
+	public Figure(Couleur couleur, Case position) 
 	{
-		this.blanc = blanc;
-		pos = new Case(colonne, ligne);
+		this.couleur = couleur;
+		this.position = position;
 		bougé = false;
 	}
 	
@@ -22,13 +24,13 @@ public abstract class Figure implements IFigure {
 	@Override
 	public void dessiner(char[][] t) 
 	{
-		t[pos.getColonne()][pos.getLigne()] = blanc ? Character.toUpperCase(getSymbole()) : Character.toLowerCase(getSymbole());
+		t[position.getColonne()][position.getLigne()] = couleur == Couleur.BLANC ? Character.toUpperCase(getSymbole()) : Character.toLowerCase(getSymbole());
 	}
 	
 	@Override
 	public void déplacer(Case dest, boolean simulation)
 	{
-		pos = dest;
+		position = dest;
 		
 		if(!simulation)
 			bougé = true;
@@ -37,7 +39,7 @@ public abstract class Figure implements IFigure {
 	@Override
 	public boolean occupe(Case c) 
 	{
-		return pos.equals(c);
+		return position.equals(c);
 	}
 	
 	@Override 
@@ -73,9 +75,9 @@ public abstract class Figure implements IFigure {
 	}
 	
 	@Override
-	public boolean estBlanc()
+	public Couleur getCouleur()
 	{
-		return blanc;
+		return couleur;
 	}
 	
 	@Override
@@ -87,6 +89,6 @@ public abstract class Figure implements IFigure {
 	@Override
 	public Case getCase()
 	{
-		return pos;
+		return position;
 	}
 }
