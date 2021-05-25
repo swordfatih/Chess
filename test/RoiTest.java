@@ -52,10 +52,9 @@ public class RoiTest {
 
         try {
             e.jouer(new Case(1, 2), new Case(2, 2));
-            assertTrue(r.aBougé());
-            assertTrue(r.occupe(new Case(2, 2)));
-        } catch(Exception err) {
             fail();
+        } catch(Exception err) {
+            assertTrue(r.occupe(new Case(1, 2)));
         }
     }
 
