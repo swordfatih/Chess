@@ -1,5 +1,7 @@
 package echecs;
 
+import figures.Figure.Couleur;
+
 public interface IFigure {
 	IFigure faireRoque(Case dest, Echiquier echiquier);
 	boolean potentiel(Case dest, Echiquier echiquier);
@@ -10,7 +12,7 @@ public interface IFigure {
 	boolean peutEtrePromu();
 	boolean peutEtreMat();
 	boolean estInsuffisant();
-	boolean estBlanc();
 	boolean aBougé();
+	Couleur getCouleur();
 	Case getCase();
 }

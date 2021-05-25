@@ -2,83 +2,65 @@ package joueurs;
 
 import java.util.Scanner;
 
-import echecs.Case;
+import appli.Application;
+import appli.Joueur;
+import echecs.Echiquier;
 import echecs.IFigure;
+import figures.Cavalier;
+import figures.Dame;
+import figures.Fou;
 import figures.Tour;
-import jeu.Joueur;
 
 public class JoueurHumain implements Joueur {
 	@Override
-	public String getCoup() throws Exception
+	public String getCoup(Echiquier echiquier) 
 	{
+		System.out.println("'a' pour abandonner, 'n' pour proposer un nul");
+
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
-		
-		System.out.print("> ");
-		String ligne = scanner.nextLine();
-		
-		while(ligne != "fin")
-		{
-			try
-			{
-				Case src = new Case(ligne.substring(0, 2));
-				Case dest = new Case(ligne.substring(2, 4));
-				
-				if(src.valide() && dest.valide())
-				{
-					return ligne.substring(0, 4);
-				}
-			}
-			catch(Exception e) {}
-			
-			System.out.print("#> ");
-			ligne = scanner.nextLine();
-		}
-		
-		throw new Exception("La lecture du coup a échoué");
+		return scanner.nextLine();
 	}
 	
 	@Override
-	public IFigure getPromotion(IFigure promu) throws Exception
+	public IFigure getPromotion(IFigure promu) 
 	{
-		System.out.println("Choisissez la figure choisit pour la promotion");
-		System.out.println("'dame' ou 'd' pour une dame");
-		System.out.println("'tour' ou 't' pour une tour");
-		System.out.println("'fou' ou 'f' pour un fou");
-		System.out.println("'cavalier' ou 'c' pour un cavalier");
-		
-		@SuppressWarnings("resource")
-		Scanner scanner = new Scanner(System.in);
-		
-		System.out.print("> ");
-		String ligne = scanner.nextLine();
-		
-		while(ligne != "fin")
-		{
-			if(ligne.startsWith("d"))
-			{
-				System.out.println("Cette fonctionnalité n'est pas encore implémentée");
-				//return new Tour();
-			}
-			else if(ligne.startsWith("t"))
-			{
-				return new Tour(promu.estBlanc(), promu.getCase().getColonne(), promu.getCase().getLigne());
-			}
-			if(ligne.startsWith("f"))
-			{
-				System.out.println("Cette fonctionnalité n'est pas encore implémentée");
-				//return new Tour();
-			}
-			else if(ligne.startsWith("c"))
-			{
-				System.out.println("Cette fonctionnalité n'est pas encore implémentée");
-				//return new Tour();
-			}
-			
-			System.out.print("#> ");
-			ligne = scanner.nextLine();
-		}
-		
-		throw new Exception("La promotion a échoué");
+		return Application.getInput("Choisissez la figure choisit pour la promotion\n" 
+				+ "'d' pour une dame\n"
+				+ "'t' pour un tour\n"
+				+ "'f' pour un fou\n"
+				+ "'c' pour un cavalier", (ligne) -> {
+					if(ligne.startsWith("d"))
+						return new Dame(promu.getCouleur(), promu.getCase());
+					else if(ligne.startsWith("t"))
+						return new Tour(promu.getCouleur(), promu.getCase());
+					else if(ligne.startsWith("f"))
+						return new Fou(promu.getCouleur(), promu.getCase());
+					else if(ligne.startsWith("c"))
+						return new Cavalier(promu.getCouleur(), promu.getCase());	
+								
+					return null;
+				});
+	}
+	
+	@Override
+	public boolean accepteNul()
+	{
+		return Application.getInput("Acceptez vous la proposition de nul ?\n" 
+				+ "'o' pour oui\n"
+				+ "'n' pour non", (ligne) -> {
+					if(ligne.startsWith("o"))
+						return true;
+					else if(ligne.startsWith("n"))
+						return false;
+					
+					return null;
+				});
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "Humain";
 	}
 }

@@ -5,9 +5,9 @@ import echecs.Echiquier;
 import echecs.IFigure;
 
 public class Roi extends Figure {
-	public Roi(boolean blanc, int colonne, int ligne) 
+	public Roi(Couleur couleur, Case position) 
 	{
-		super(blanc, colonne, ligne);
+		super(couleur, position);
 	}
 	
 	@Override
@@ -19,6 +19,21 @@ public class Roi extends Figure {
 			return true;
 		
 		// Roque
+		return peutFaireRoque(dest, echiquier);
+	}
+	
+	@Override
+	public IFigure faireRoque(Case dest, Echiquier echiquier)
+	{
+		if(!peutFaireRoque(dest, echiquier))
+			return null;
+		
+		boolean petit = dest.relatif(getCase()).getColonne() > 0 ? true : false;
+		return echiquier.occupant(new Case(dest.getColonne() + (petit ? 1 : -2), getCase().getLigne()));
+	}
+	
+	private boolean peutFaireRoque(Case dest, Echiquier echiquier)
+	{
 		boolean petit = dest.relatif(getCase()).getColonne() > 0 ? true : false;
 		 
 		int ligne = getCase().getLigne();
@@ -30,7 +45,7 @@ public class Roi extends Figure {
 				|| aBougé() // Le roi a déjà bougé
 				|| partenaire == null // Le roi n'a pas de partenaire
 				|| !partenaire.peutEtreRoque() // La partenaire a déjà bougé
-				|| partenaire.estBlanc() != estBlanc()) // La partenaire n'est pas alliée
+				|| partenaire.getCouleur() != getCouleur()) // La partenaire n'est pas alliée
 		{
 			return false;
 		}
@@ -43,13 +58,6 @@ public class Roi extends Figure {
 		}	
 		
 		return true;
-	}
-	
-	@Override
-	public IFigure faireRoque(Case dest, Echiquier echiquier)
-	{
-		boolean petit = dest.relatif(getCase()).getColonne() > 0 ? true : false;
-		return echiquier.occupant(new Case(dest.getColonne() + (petit ? 1 : -2), getCase().getLigne()));
 	}
 	
 	@Override

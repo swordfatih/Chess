@@ -3,13 +3,16 @@ package echecs;
 import java.util.ArrayList;
 import java.util.function.BooleanSupplier;
 
+import figures.Figure.Couleur;
+
 public class Echiquier {
     public static final int TAILLE = 8; // Nombre de cases d'un côté de l'échiquier
 	private static final int INSUFFISANCE_THEORIQUE = 3; // Nombre insufissante de figure pour gagner si ces figures sont tous "insufissants"
 	private static final int NB_COUP_POUR_PAT = 50; // La règle des 50 coups
 	
 	private ArrayList<IFigure> figures; // Les figures de l'échiquier
-	private int compteurCoupPat;
+	private Couleur courante; // La couleur courante
+	private int compteurCoupPat; // Compteur pour la règle des 50 coups
 	
 	/**
 	 * Le constructeur de l'échiquier
@@ -19,16 +22,18 @@ public class Echiquier {
 	public Echiquier(IFabrique fabrique)
 	{
 		figures = new ArrayList<IFigure>();
+		courante = Couleur.BLANC;
 		compteurCoupPat = 0;
 		
 		for(int i = 0; i < TAILLE; ++i)
 			for(int j = 0; j < TAILLE; ++j)
 			{
 				IFigure f = fabrique.fabriquer(new Case(i, j));
-				if(f != null) figures.add(f);
+				if(f != null) 
+					figures.add(f);
 			}
 	}
-
+	
 	/**
 	 * Tous les attaquants d'une case donnée pour une figure
 	 * @param figure
@@ -41,10 +46,9 @@ public class Echiquier {
 		ArrayList<IFigure> attaquants = new ArrayList<IFigure>();
 		
 		for(IFigure f : figures)
-		{
-			if(figure != f && f.estBlanc() != figure.estBlanc() && f.potentiel(c, this))
+			if(figure != f && f.getCouleur() != figure.getCouleur() && f.potentiel(c, this))
 				attaquants.add(f);
-		}
+				
 		
 		return attaquants;
 	}
@@ -62,16 +66,27 @@ public class Echiquier {
 	}
 	
 	/** 
-	 * Récupérer la figure en situation d'échec s'il y en a un
+	 * Récupérer la figure en situation d'échec s'il y en a un pour une couleur donnée
 	 * @return
 	 */
-	private IFigure echec()
+	public IFigure echec(Couleur couleur)
 	{
 		for(IFigure f : figures)
-		{
+			if(f.getCouleur() == couleur && menace(f, f.getCase())) 
+				return f;
+		
+		return null;
+	}
+	
+	/** 
+	 * Récupérer la figure en situation d'échec s'il y en a un 
+	 * @return
+	 */
+	public IFigure echec()
+	{
+		for(IFigure f : figures)
 			if(menace(f, f.getCase())) 
 				return f;
-		}
 		
 		return null;
 	}
@@ -85,10 +100,8 @@ public class Echiquier {
 	public IFigure occupant(Case c)
 	{
 		for(IFigure f : figures)
-		{
 			if(f.occupe(c)) 
 				return f;
-		}
 		
 		return null;
 	}
@@ -105,16 +118,18 @@ public class Echiquier {
 	 * @return Le résultat de la simulation
 	 * @throws Exception
 	 */
-	private boolean simulation(Case src, Case dest, BooleanSupplier lambda) 
+	public boolean simulation(Case src, Case dest, BooleanSupplier lambda) 
 	{
 		IFigure figure = occupant(src);
 		if(figure == null) 
 			return false;
 		
-		// Simuler le coup
+		// Simuler la prise
 		IFigure occupant = occupant(dest);
 		if(occupant != null) 
 			figures.remove(occupant);
+		
+		// Simuler le coup
 		figure.déplacer(dest, true);
 		
 		// Tester
@@ -136,14 +151,13 @@ public class Echiquier {
 		if(src.equals(dest) // Les cases source et destination sont les mêmes
 				|| figure == null // Aucune figure n'est trouvée 
 				|| !figure.potentiel(dest, this) // La figure ne sait pas y aller
-				|| (occupant != null && (occupant.estBlanc() == figure.estBlanc() // Une figure alliée s'y trouve
+				|| (occupant != null && (occupant.getCouleur() == figure.getCouleur() // Une figure alliée s'y trouve
 					|| occupant.peutEtreMat())) // Une figure imprenable s'y trouve
 				|| simulation(src, dest, () -> { 
 					return menace(figure, dest); }) // On vérifie si la figure se met en situation d'échec
 				|| simulation(src, dest, () -> { 
-						IFigure echec = echec();
-						return echec != null && echec.estBlanc() == figure.estBlanc(); 
-				   })) // On vérifie s'il y a clouage
+						return echec(figure.getCouleur()) != null; 
+				   })) // On vérifie s'il y a clouage ou échec
 		{
 			return false;
 		}
@@ -168,12 +182,11 @@ public class Echiquier {
 		if(!src.valide() || !dest.valide())
 			throw new IndexOutOfBoundsException();
 		
-		// On effectue la prise s'il y a
-		IFigure occupant = occupant(dest);
-		if(occupant != null) 
-			figures.remove(occupant);
-		
 		IFigure figure = occupant(src);
+		
+		// On vérifie si c'est la bonne couleur qui est bougée
+		if(figure.getCouleur() != courante)
+			throw new Exception("Ce n'est pas aux " + (courante == Couleur.BLANC ? "noirs" : "blancs") + " de jouer");
 		
 		// On effectue le roque s'il y a lieu
 		IFigure partenaire = figure.faireRoque(dest, this);
@@ -181,6 +194,11 @@ public class Echiquier {
 		if(partenaire != null)
 			partenaire.déplacer(new Case(src.getColonne() + (dest.relatif(src).getColonne() > 0 ? 1 : -1), src.getLigne()), false);
 			
+		// On effectue la prise s'il y a
+		IFigure occupant = occupant(dest);
+		if(occupant != null) 
+			figures.remove(occupant);
+		
 		// On déplace la figure
 		figure.déplacer(dest, false);
 		
@@ -188,9 +206,9 @@ public class Echiquier {
 		compteurCoupPat++;
 		
 		if(figure.peutEtrePromu() || occupant != null)
-		{
 			compteurCoupPat = 0;
-		}
+		
+		courante = Couleur.values()[Math.abs(courante.ordinal() - 1)];
 	}
 	
 	/**
@@ -198,50 +216,44 @@ public class Echiquier {
 	 * @param figure
 	 * @param grille
 	 */
-	private ArrayList<Case> mouvementsPossibles(IFigure figure)
+	public ArrayList<Case> mouvementsPossibles(IFigure figure)
 	{
 		ArrayList<Case> cases = new ArrayList<Case>();
 		
 		for(int i = 0; i < TAILLE; ++i)
-		{
 			for(int j = 0; j < TAILLE; ++j)
 			{
 				Case dest = new Case(i, j);
 				if(estJouable(figure.getCase(), dest))
 					cases.add(dest);
 			}
-		}
-		
+
 		return cases;
 	}
 	
-	public boolean pat(boolean blanc)
+	public boolean pat(Couleur couleur)
 	{
 		// Règle des 50 coups
 		if(compteurCoupPat >= NB_COUP_POUR_PAT)
-		{
 			return true;
-		}
 		
 		// Insuffisance matériel
-		boolean insufissance = true;
 		if(figures.size() <= INSUFFISANCE_THEORIQUE)
 		{
+			boolean insufissance = true;
+			
 			for(IFigure figure : figures)
-			{
 				if(figure.estInsuffisant() == false)
 					insufissance = false;
-			}
+			
+			if(insufissance) 
+				return true;
 		}
-		
-		if(insufissance) return true;
 		
 		// Stalemate
 		for(IFigure figure : figures)
-		{
-			if(figure.estBlanc() == blanc && mouvementsPossibles(figure).size() > 0)
+			if(figure.getCouleur() == couleur && mouvementsPossibles(figure).size() > 0)
 				return false;
-		}
 		
 		return true;
 	}
@@ -252,9 +264,7 @@ public class Echiquier {
 			
 		// S'il n'y a pas échec ou si le roi peut se sauver
 		if(echec == null || mouvementsPossibles(echec).size() > 0)
-		{
 			return false;
-		}
 		
 		// S'il y a plusieurs attaquants, le mat est inévitable
 		ArrayList<IFigure> attaquants = attaquants(echec, echec.getCase());
@@ -262,23 +272,27 @@ public class Echiquier {
 		
 		// Si une pièce attaquante peut être capturé
 		for(IFigure figure : figures)
-			if(figure.estBlanc() == echec.estBlanc())
+			if(figure.getCouleur() == echec.getCouleur())
 				for(IFigure attaquant : attaquants)
 					if(estJouable(figure.getCase(), attaquant.getCase()))
 						return false;
 		
 		// Si une interposition est possible
+		ArrayList<IFigure> memeCouleur = new ArrayList<IFigure>();
+		
 		for(IFigure figure : figures)
-			if(figure.estBlanc() == echec.estBlanc())
-				for(IFigure attaquant : attaquants)
-					for(Case c : mouvementsPossibles(attaquant))
-						if(simulation(figure.getCase(), c, () -> {
-							IFigure e = echec();
-							return e == null || e.estBlanc() != figure.estBlanc(); 
-						}))
-						{
-							return false;
-						}
+			if(figure != echec && figure.getCouleur() == echec.getCouleur())
+				memeCouleur.add(figure);
+		
+		for(IFigure figure : memeCouleur)
+			for(Case c : mouvementsPossibles(figure))
+				if(simulation(figure.getCase(), c, () -> {
+					IFigure e = echec();
+					return e == null || e.getCouleur() != figure.getCouleur(); 
+				}))
+				{
+					return false;
+				}
 							
 		return true;
 	}
@@ -286,14 +300,25 @@ public class Echiquier {
 	public IFigure promotion()
 	{
 		for(IFigure figure : figures)
-		{
 			if(figure.peutEtrePromu()) 
-			{
 				return figure;
-			}
-		}
 		
 		return null;
+	}
+	
+	public void promouvoir(IFigure nouvelle)
+	{
+		IFigure occupant = occupant(nouvelle.getCase());
+		
+		if(occupant == null && promotion() == occupant)
+			return;
+		
+		figures.set(figures.indexOf(occupant), nouvelle);
+	}
+	
+	public Couleur getCouleurCourante()
+	{
+		return courante;
 	}
 	
 	public String toString() 
@@ -302,9 +327,7 @@ public class Echiquier {
 		char t[][] = new char[TAILLE][TAILLE];
 		
 		for(IFigure figure : figures)
-		{
 			figure.dessiner(t);
-		}
 		
 		StringBuilder affichage = new StringBuilder();
 		
@@ -323,9 +346,7 @@ public class Echiquier {
 			// Affichage des lignes
 			affichage.append("   ");
 			for(int j = 0; j < TAILLE; ++j)
-			{
 				affichage.append(" ---");
-			}
 			affichage.append("    ");
 			
 			affichage.append(System.lineSeparator());
@@ -335,9 +356,7 @@ public class Echiquier {
 			
 			// Affichage des colonnes
 			for(int j = 0; j < TAILLE; ++j)
-			{
 				affichage.append("| " + t[j][TAILLE - i - 1] + " ");
-			}
 			
 			// Affichage des nombres de fin
 			affichage.append("| " + (TAILLE - i) + " ");
@@ -348,9 +367,7 @@ public class Echiquier {
 		// Affichage de la dernière ligne
 		affichage.append("   ");
 		for(int j = 0; j < TAILLE; ++j)
-		{
 			affichage.append(" ---");
-		}
 		affichage.append("    ");
 		
 		affichage.append(System.lineSeparator());
