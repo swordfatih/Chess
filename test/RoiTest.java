@@ -3,9 +3,10 @@ package test;
 import echecs.Case;
 import echecs.Echiquier;
 import fabriques.Fabrique;
+import figures.Figure;
 import figures.Roi;
 import org.junit.Test;
-import org.junit.Assert;
+import static org.junit.Assert.*;
 
 /**
  * @author Antoine <antoine@jiveoff.fr> on 24/05/2021
@@ -15,50 +16,46 @@ public class RoiTest {
 
     @Test
     public void creationRoi() {
-        Roi r = new Roi(true, 1, 1);
-        Assert.assertTrue(r.estBlanc());
-        Assert.assertTrue(r.peutEtreMat());
-        Assert.assertFalse(r.peutEtreRoque());
-        Assert.assertFalse(r.peutEtrePromu());
-        Assert.assertFalse(r.aBougé());
-        Assert.assertTrue(r.occupe(new Case(1, 1)));
+        Roi r = new Roi(Figure.Couleur.BLANC, new Case(1, 1));
+        assertSame(r.getCouleur(), Figure.Couleur.BLANC);
+        assertTrue(r.peutEtreMat());
+        assertFalse(r.peutEtreRoque());
+        assertFalse(r.peutEtrePromu());
+        assertFalse(r.aBougé());
+        assertTrue(r.occupe(new Case(1, 1)));
     }
 
     @Test
     public void mouvementsRoi() {
         Fabrique f = new Fabrique();
 
-        Roi r = new Roi(true, 1, 1);
-        Assert.assertTrue(r.estBlanc());
-        Assert.assertTrue(r.peutEtreMat());
-        Assert.assertFalse(r.peutEtreRoque());
-        Assert.assertFalse(r.peutEtrePromu());
+        Roi r = new Roi(Figure.Couleur.BLANC, new Case(1, 1));
 
         f.ajouter(r);
         Echiquier e = new Echiquier(f);
 
-        Assert.assertFalse(r.potentiel(new Case(1, 5), e));
+        assertFalse(r.potentiel(new Case(1, 5), e));
 
         try {
             e.jouer(new Case(1, 1), new Case(1, 5));
-            Assert.fail();
+            fail();
         } catch(Exception err) {
-            Assert.assertTrue(true);
+            assertTrue(true);
         }
 
         try {
             e.jouer(new Case(1, 1), new Case(1, 2));
-            Assert.assertTrue(true);
+            assertTrue(true);
         } catch(Exception err) {
-            Assert.fail();
+            fail();
         }
 
         try {
             e.jouer(new Case(1, 2), new Case(2, 2));
-            Assert.assertTrue(r.aBougé());
-            Assert.assertTrue(r.occupe(new Case(2, 2)));
+            assertTrue(r.aBougé());
+            assertTrue(r.occupe(new Case(2, 2)));
         } catch(Exception err) {
-            Assert.fail();
+            fail();
         }
     }
 

@@ -3,6 +3,7 @@ package test;
 import echecs.Case;
 import echecs.Echiquier;
 import fabriques.Fabrique;
+import figures.Figure;
 import figures.Tour;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -15,8 +16,8 @@ public class TourTest {
 
     @Test
     public void creationTour() {
-        Tour t1 = new Tour(true, 1, 1);
-        assertTrue(t1.estBlanc());
+        Tour t1 = new Tour(Figure.Couleur.BLANC, new Case(1, 1));
+        assertSame(t1.getCouleur(), Figure.Couleur.BLANC);
         assertFalse(t1.peutEtrePromu());
         assertFalse(t1.peutEtreMat());
         assertTrue(t1.occupe(new Case(1,1)));
@@ -25,15 +26,15 @@ public class TourTest {
         assertFalse(t1.estInsuffisant());
         assertEquals(t1.getSymbole(), 't');
 
-        Tour t2 = new Tour(false, 4, 3);
-        assertFalse(t2.estBlanc());
+        Tour t2 = new Tour(Figure.Couleur.NOIR, new Case(4, 3));
+        assertNotSame(t2.getCouleur(), Figure.Couleur.BLANC);
     }
 
     @Test
     public void roque() {
 
         Fabrique f = new Fabrique();
-        Tour t = new Tour(true, 1,1);
+        Tour t = new Tour(Figure.Couleur.BLANC, new Case(1, 1));
         f.ajouter(t);
         Echiquier e = new Echiquier(f);
 
@@ -53,7 +54,7 @@ public class TourTest {
     public void mouvementTour() {
         Fabrique f = new Fabrique();
 
-        Tour t = new Tour(true, 7,4);
+        Tour t = new Tour(Figure.Couleur.BLANC, new Case(7, 4));
         f.ajouter(t);
 
         Echiquier e = new Echiquier(f);
